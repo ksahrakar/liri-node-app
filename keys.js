@@ -15,3 +15,7 @@ exports.spotify = {
 exports.OMDb = {
   OMDb_API_key: process.env.OMDB_KEY
 }
+
+exports.bit = {
+  BIT_key: process.env.BIT_Key
+}

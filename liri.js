@@ -3,12 +3,13 @@ var keys = require("./keys");
 var twitter=require("twitter");
 var spotify=require("node-spotify-api");
 var request=require("request");
+var moment=require("moment");
 var fs=require("fs");
 
-
-var spotify = new spotify(keys.spotify);
+var spoti = new spotify(keys.spotify);
 var client = new twitter(keys.twitter);
 const OMDb_API_key = keys.OMDb.OMDb_API_key;
+const BIT_key = keys.bit.BIT_key;
 
 temp=process.argv.slice(2);
 cmnd=temp[0];
@@ -18,6 +19,7 @@ switch(cmnd){
     case "my-tweets": twtr(param);break;
     case "movie-this": OMDb(param);break;
     case "spotify-this": spot(param);break;
+    case "concert-this": bandsiT(param);break;
     case "do-it": doit();break;
 }
 
@@ -25,7 +27,7 @@ function doit(){
     // Read file first
     fs.readFile("random.txt", "utf8", function(error, data) {
         if (error) {
-          return console.log(error);
+            return console.log(error);
         }else{
             var dataArr = data.split(",");
             param=dataArr[1].replace(/^"(.*)"$/, '$1');
@@ -34,6 +36,7 @@ function doit(){
             switch(x){
                 case "my-tweets": twtr(param);break;
                 case "movie-this": OMDb(param);break;
+                case "concert-this": bandsiT(param);break;
                 case "spotify-this": spot(param);break;
             }
         }
@@ -45,19 +48,24 @@ function spot(a){
     if(a){
         var title = param;
         //console.log(title);
-        spotify.search({type:"track",query:title}, function(error, body) {
+        spoti.search({type:"track",query:title,limit:5}, function(error, body) {
             if (!error) {
-                //console.log(body.tracks.items[0].name);
-                console.log("The song title is: " + body.tracks.items[0].name);
-                console.log("The artist is: " + body.tracks.items[0].album.artists[0].name);
-                console.log("The album name is: " + body.tracks.items[0].album.name);
-                console.log("Date of release: " + body.tracks.items[0].album.release_date);
-                console.log("Preview at: " + body.tracks.items[0].album.external_urls.spotify);
-            } else if (body==undefined){console.log("I couldn't find a track with that name")}
+                //console.log(body.tracks.items.length);
+                console.log("These are the top five search results");
+                console.log("---------------------");
+                for (i=0;i<5;i++){
+                    console.log("The song title is: " + body.tracks.items[i].name);
+                    console.log("The artist is: " + body.tracks.items[i].album.artists[0].name);
+                    console.log("The album name is: " + body.tracks.items[i].album.name);
+                    console.log("Date of release: " + body.tracks.items[i].album.release_date);
+                    console.log("Preview at: " + body.tracks.items[i].album.external_urls.spotify);
+                    console.log("----------------------");
+                }
+            } else if (error==undefined){console.log("I couldn't find a track with that name")}
         });      
     }else{
         console.log("Since you have not entered a track title, you get stats for 'The Sign'");
-        spotify.search({type:"track",query:"The Sign",artist:"ace of base"}, function(error, response, bodyd) {
+        spoti.search({type:"track",query:"The Sign",artist:"ace of base"}, function(error, response, bodyd) {
             if (!error) {
                 console.log("The song title is: " + bodyd.tracks.items[0].name);
                 console.log("The artist is: " + bodyd.tracks.items[0].album.artists[0].name);
@@ -74,7 +82,7 @@ function OMDb(a){
         var title = a.split(" ").join("+");
         //console.log(title);
         request("http://www.omdbapi.com/?t="+title+"&y=&tomatoes=True&plot=short&apikey="+OMDb_API_key, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
+            if (!error && response.statusCode === 200 && !(JSON.parse(body).Title==undefined)) {
                 console.log("The title is: " + JSON.parse(body).Title);
                 console.log("Year of release: " + JSON.parse(body).Year);
                 console.log("The movie's IMDb rating is: " + JSON.parse(body).imdbRating);
@@ -83,7 +91,7 @@ function OMDb(a){
                 console.log("Movie language: "+ JSON.parse(body).Language);
                 console.log("Plot: "+ JSON.parse(body).Plot);
                 console.log("Actors include: "+ JSON.parse(body).Actors);
-            } else {console.log("I couldn't find a movie with that name")}
+            }else {console.log("I couldn't find a movie with that name")}
         });      
     }else{
         console.log("Since you have not entered a movie title, you get stats for Mr. Nobody");
@@ -108,3 +116,24 @@ function twtr(a){
         else {console.log(resp)}
     })
 }
+
+function bandsiT(a){
+    if(a){
+        var fartist = a.split(" ").join("+");
+        request("https://rest.bandsintown.com/artists/"+fartist+"/events?app_id="+BIT_key, function(error, response, bodyb) {
+            if (!error && !(JSON.parse(bodyb)[0]==undefined)) {
+                console.log("-----UPCOMING SHOWS-----");
+                console.log("------------------------");
+                for (i=0;i<JSON.parse(bodyb).length;i++){
+                    console.log("The venue: " + JSON.parse(bodyb)[i].venue.name);
+                    console.log("Location: " + JSON.parse(bodyb)[i].venue.city);
+                    console.log("Date: " + moment(JSON.parse(bodyb)[i].datetime).format("MM/DD/YYYY"));
+                    console.log("-------------------------------");
+                }
+            } else {console.log("I couldn't find an upcoming venue")}
+        });      
+    }else{
+        console.log("No artist to search for");
+    }   
+}
+
