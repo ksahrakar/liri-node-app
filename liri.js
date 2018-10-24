@@ -124,16 +124,18 @@ function bandsiT(a){
             if (!error && !(JSON.parse(bodyb)[0]==undefined)) {
                 console.log("-----UPCOMING SHOWS-----");
                 console.log("------------------------");
+                fs.appendFile("reqlog.txt","-----Console command: "+temp+"-----\r\n"+"-----"+fartist.split("+").join(' ')+" performances found"+"-----"+"\r\n", function(err){
+                    if (err) {console.log(err)}
+                });
                 for (i=0;i<JSON.parse(bodyb).length;i++){
                     console.log("The venue: " + JSON.parse(bodyb)[i].venue.name);
                     console.log("Location: " + JSON.parse(bodyb)[i].venue.city);
                     console.log("Date: " + moment(JSON.parse(bodyb)[i].datetime).format("MM/DD/YYYY"));
                     console.log("-------------------------------");
+                    fs.appendFile("reqlog.txt", JSON.parse(bodyb)[i].venue.name+','+JSON.parse(bodyb)[i].venue.city+','+moment(JSON.parse(bodyb)[i].datetime).format("MM/DD/YYYY")+'\r\n', function(err) {if (err) {console.log(err)}
+                    });
                 }
             } else {console.log("I couldn't find an upcoming venue")}
         });      
-    }else{
-        console.log("No artist to search for");
-    }   
+    }else{console.log("No artist to search for");}   
 }
-
