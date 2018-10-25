@@ -7,21 +7,15 @@ var moment=require("moment");
 var fs=require("fs");
 var inquirer = require("inquirer");
 
-
 var spoti = new spotify(keys.spotify);
 var client = new twitter(keys.twitter);
 const OMDb_API_key = keys.OMDb.OMDb_API_key;
 const BIT_key = keys.bit.BIT_key;
 
-// temp=process.argv.slice(2);
-// cmnd=temp[0];
-// param=temp[1];
 var cmnd;
 var param;
 
-var inquirer = require("inquirer");
-
-// Create a "Prompt" with a series of questions.
+// Create a "Prompt" with a series of questions - inquirer
 inquirer
   .prompt([
     {
@@ -33,6 +27,7 @@ inquirer
   ])
   .then(function(inqResp) {
     switch (inqResp.choices) {
+        // Call inquirer recursively for second question = param
         case "my-tweets": cmnd="my-tweets";inquirer.prompt([{type:"input",message:"How many?(Default=1)",name:"numb",default:1}]).then(function(inqRespT){param=parseInt(inqRespT.numb);twtr(param)});break;
         case "movie-this": cmnd="movie-this";inquirer.prompt([{type:"input",message:"What movie title?",name:"mTitle"}]).then(function(inqRespM){param=inqRespM.mTitle.split(" ").join("+");OMDb(param)});break;
         case "spotify-this": cmnd="spotify-this";inquirer.prompt([{type:"input",message:"What track title?",name:"tTitle"}]).then(function(inqRespT){param=inqRespT.tTitle;spot(param)});break;
@@ -42,6 +37,7 @@ inquirer
     }
 });
 
+// Do what the file says
 function doit(){
     // Read file first
     fs.readFile("random.txt", "utf8", function(error, data) {
@@ -62,6 +58,7 @@ function doit(){
     });
 }
 
+// Spotify API call by artist - multiple answers
 function spot(a){
     if(a){
         spoti.search({type:"track",query:a,limit:5}, function(error, body) {
@@ -83,21 +80,21 @@ function spot(a){
         });      
     }else{
         console.log("Since you have not entered a track title, you get stats for 'The Sign'");
-        spoti.search({type:"track",query:"The Sign",artist:"ace of base"}, function(error, response, bodyd) {
-            var temp = "'node liri', then '"+cmnd+"' then '"+a+"'";
-            if (!error) {
-                fs.appendFile("reqlog.txt","-----CONSOLE COMMANDS: "+temp+"-----\r\n"+"-----"+a+" track found"+"-----"+"\r\n", function(err){if (err) {console.log(err)}});
-                console.log("The song title is: " + bodyd.tracks.items[0].name);
-                console.log("The artist is: " + bodyd.tracks.items[0].album.artists[0].name);
-                console.log("The album name is: " + bodyd.tracks.items[0].album.name);
-                console.log("Date of release: " + bodyd.tracks.items[0].album.release_date);
-                console.log("Preview at: " + bodyd.tracks.items[0].album.external_urls.spotify);
-                fs.appendFile("reqlog.txt", bodyd.tracks.items[i].name+','+bodyd.tracks.items[i].album.artists[0].name+','+bodyd.tracks.items[i].album.name+','+bodyd.tracks.items[i].album.release_date+','+'\r\n'+bodyd.tracks.items[i].album.external_urls.spotify+'\r\n'+'------------', function(err) {if (err) {console.log(err)}});
-            }
-        });   
+        spoti.request("https://api.spotify.com/v1/tracks/0hrBpAOgrt8RXigk83LLNE")
+        .then (function(bodyd) {
+            var temp = "'node liri', then '"+cmnd+"' then ''";
+            fs.appendFile("reqlog.txt","-----CONSOLE COMMANDS: "+temp+"-----\r\n"+"-----"+a+" track found"+"-----"+"\r\n", function(err){if (err) {console.log(err)}});
+            console.log("The song title is: " + bodyd.name);
+            console.log("The artist is: " + bodyd.artists[0].name);
+            console.log("The album name is: " + bodyd.album.name);
+            console.log("Date of release: " + bodyd.album.release_date);
+            console.log("Preview at: " + bodyd.preview_url);
+            fs.appendFile("reqlog.txt", bodyd.name+','+bodyd.artists[0].name+','+bodyd.album.name+','+bodyd.album.release_date+','+'\r\n'+bodyd.preview_url+'\r\n'+'------------', function(err) {if (err) {console.log(err)}});
+        }).catch (function(err){if (err) {console.log(err)}}); 
     }
 }
 
+// OMDb API call - one answer only
 function OMDb(a){
     if(a){
         var temp = "'node liri', then '"+cmnd+"' then '"+a.split("+").join(" ")+"'";
@@ -135,6 +132,7 @@ function OMDb(a){
     }
 }
 
+// Twitter API call - number of tweets indicated
 function twtr(a){
     client.get("https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=real_kamran_s&count="+a,function(err,bodyt,resp){
         var temp = "'node liri', then '"+cmnd+"' then '"+a+"'";
@@ -148,6 +146,7 @@ function twtr(a){
     })
 }
 
+// Bands in town call - many answers
 function bandsiT(a){
     if(a){
         //var fartist = a.split(" ").join("+");
