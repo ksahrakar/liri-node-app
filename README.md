@@ -1,4 +1,4 @@
-This will be a node.js application that calls three API's and presents information based on user requests
+This will be a node.js application that calls four API's and presents information based on user requests
 
 
 You will have to ADD YOUR OWN .env file to use this app: use this format and place the file in the root directory
