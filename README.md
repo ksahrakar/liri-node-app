@@ -49,4 +49,6 @@ Input is acquired through a recursive inquire call that loads a global "cmnd" va
     * title of movie
     * performs any of the above functions as outlined in an external .txt file
 
-
+# Walk-through
+Link to walk-through
+https://drive.google.com/file/d/1tIP86Fs9Tuy5z7IMSB91ThIZzWzmVnNx/view?usp=sharing
